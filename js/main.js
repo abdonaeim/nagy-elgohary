@@ -19,7 +19,7 @@ backToTopBtn.addEventListener("click", () => {
 /*  Start Animation Typing */
 
 const el = document.querySelector(".type-once .text");
-const text = "Abdelrhman Naeim";
+const text = "Nagy Elgohary";
 let i = 0;
 let typing = true;
 
