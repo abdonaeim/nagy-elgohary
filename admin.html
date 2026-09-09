@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nagy Elgohary | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <style>
+    :root{font-family:Quicksand,sans-serif;color:#edf7f7;background:#0e1326}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#173c55,#0e1326 48%);min-height:100vh}.shell{max-width:1100px;margin:auto;padding:36px 20px}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px}.top h1{margin:0;color:#7be2da}.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:24px;box-shadow:0 16px 50px #0004}.login{max-width:440px;margin:12vh auto}.field{display:grid;gap:8px;margin:16px 0}label{font-weight:600;color:#c7d9dc}input,textarea{width:100%;background:#08101f;color:#fff;border:1px solid #38516a;border-radius:10px;padding:12px;font:inherit}textarea{min-height:480px;resize:vertical}button{border:0;border-radius:10px;padding:12px 18px;background:#099d97;color:#fff;font:inherit;font-weight:700;cursor:pointer}button.secondary{background:#30445b}button.danger{background:#8c3f50}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.muted{color:#aabfc4}.status{min-height:24px;margin-top:12px}.hidden{display:none!important}a{color:#7be2da}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section id="loginCard" class="card login">
+      <h1>Admin Login</h1><p class="muted">Sign in with the Supabase admin account.</p>
+      <form id="loginForm"><div class="field"><label for="email">Email</label><input id="email" type="email" required autocomplete="email"></div><div class="field"><label for="password">Password</label><input id="password" type="password" required autocomplete="current-password"></div><button type="submit">Sign in</button><div id="loginStatus" class="status"></div></form>
+    </section>
+    <section id="dashboard" class="hidden">
+      <div class="top"><div><h1>Portfolio Content</h1><p class="muted">Edit all public content as JSON. Keep the same field names for the live site.</p></div><div class="row"><a href="index.html" target="_blank">View site</a><button id="logout" class="secondary">Log out</button></div></div>
+      <div class="card"><div class="field"><label for="contentEditor">Content JSON</label><textarea id="contentEditor" spellcheck="false"></textarea></div><div class="row"><button id="save">Save changes</button><button id="reload" class="secondary">Reload</button></div><div id="saveStatus" class="status"></div></div>
+    </section>
+  </main>
+<script>
+const table = 'portfolio_content';
+const loginCard = document.getElementById('loginCard'), dashboard = document.getElementById('dashboard');
+const loginStatus = document.getElementById('loginStatus'), saveStatus = document.getElementById('saveStatus'), editor = document.getElementById('contentEditor');
+let rowId = null;
+function message(el, text, error=false){el.textContent=text;el.style.color=error?'#ff9eae':'#9be8c5'}
+async function loadContent(){const {data,error}=await supabaseClient.from(table).select('id,content').order('id').limit(1).maybeSingle();if(error)throw error;if(!data)throw new Error('No content row found');rowId=data.id;editor.value=JSON.stringify(data.content,null,2)}
+async function showSession(session){if(!session){loginCard.classList.remove('hidden');dashboard.classList.add('hidden');return}loginCard.classList.add('hidden');dashboard.classList.remove('hidden');try{await loadContent();}catch(e){message(saveStatus,e.message,true)}}
+supabaseClient.auth.onAuthStateChange((_event,session)=>showSession(session));
+supabaseClient.auth.getSession().then(({data})=>showSession(data.session));
+document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();message(loginStatus,'Signing in…');const {error}=await supabaseClient.auth.signInWithPassword({email:email.value,password:password.value});if(error)message(loginStatus,error.message,true)});
+document.getElementById('logout').addEventListener('click',()=>supabaseClient.auth.signOut());
+document.getElementById('reload').addEventListener('click',async()=>{try{await loadContent();message(saveStatus,'Content reloaded.')}catch(e){message(saveStatus,e.message,true)}});
+document.getElementById('save').addEventListener('click',async()=>{let content;try{content=JSON.parse(editor.value)}catch(e){message(saveStatus,'Invalid JSON: '+e.message,true);return}message(saveStatus,'Saving…');const {error}=await supabaseClient.from(table).update({content,updated_at:new Date().toISOString()}).eq('id',rowId);if(error)message(saveStatus,error.message,true);else message(saveStatus,'Saved successfully.')});
+</script>
+</body>
+</html>
