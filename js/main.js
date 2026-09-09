@@ -28,8 +28,6 @@ if (menuBtn && canvasMenu && overlay) {
   function closeCanvas(){canvasMenu.classList.remove("open");overlay.classList.remove("active");if(openIcon)openIcon.style.display="inline-block";if(closeIcon)closeIcon.style.display="none";document.body.classList.remove("no-scroll");}
   closeIcon?.addEventListener("click", closeCanvas); overlay.addEventListener("click", closeCanvas); canvasLinks.forEach(link=>link.addEventListener("click",closeCanvas));
 }
-setTimeout(() => document.querySelector(".main-container")?.classList.add("hide"), 2500);
-
 /* Supabase content binding. The existing HTML remains the fallback if the database is unavailable. */
 async function loadPortfolioContent() {
   if (!window.supabaseClient) return;
