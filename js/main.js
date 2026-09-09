@@ -1,89 +1,55 @@
-/*  Start Back To Top Button */
-
+/* Back to top */
 const backToTopBtn = document.getElementById("backToTop");
+if (backToTopBtn) {
+  window.addEventListener("scroll", () => { backToTopBtn.style.display = window.pageYOffset > 300 ? "block" : "none"; });
+  backToTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+}
 
-window.addEventListener("scroll", () => {
-  if (window.pageYOffset > 300) {
-    backToTopBtn.style.display = "block";
-  } else {
-    backToTopBtn.style.display = "none";
-  }
-});
-
-backToTopBtn.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-/* End Back To Top Button */
-
-/*  Start Animation Typing */
-
+/* Typing animation */
 const el = document.querySelector(".type-once .text");
-const text = "Nagy Elgohary";
-let i = 0;
-let typing = true;
-
+let typingIndex = 0, typingForward = true;
 function typeLoop() {
-  if (typing) {
-    el.textContent = text.slice(0, ++i);
-    if (i === text.length) {
-      typing = false;
-      return setTimeout(typeLoop, 1000);
-    }
-  } else {
-    el.textContent = text.slice(0, --i);
-    if (i === 0) {
-      typing = true;
-      return setTimeout(typeLoop, 500);
-    }
-  }
-  setTimeout(typeLoop, typing ? 120 : 60);
+  if (!el) return;
+  const text = el.dataset.typingText || "Nagy Elgohary";
+  el.textContent = typingForward ? text.slice(0, ++typingIndex) : text.slice(0, --typingIndex);
+  if (typingIndex === text.length) { typingForward = false; return setTimeout(typeLoop, 1000); }
+  if (typingIndex === 0) { typingForward = true; return setTimeout(typeLoop, 500); }
+  setTimeout(typeLoop, typingForward ? 120 : 60);
 }
 typeLoop();
 
-/*  End Animation Typing */
+document.querySelectorAll(".item").forEach((item) => { const link = item.querySelector("a"); if (link) item.addEventListener("click", () => { window.location = link.href; }); });
 
-document.querySelectorAll(".item").forEach((item) => {
-  let link = item.querySelector("a");
-  if (link) {
-    item.addEventListener("click", () => {
-      window.location = link.href;
-    });
-  }
-});
-
-// Start Canvas //
-
-const menuBtn = document.getElementById("menu-btn");
-const canvasMenu = document.getElementById("canvas-menu");
-const openIcon = document.getElementById("open-icon");
-const closeIcon = document.getElementById("close-icon");
-const overlay = document.getElementById("canvas-overlay");
-const canvasLinks = canvasMenu.querySelectorAll("a");
-
-menuBtn.addEventListener("click", () => {
-  canvasMenu.classList.add("open");
-  overlay.classList.add("active");
-  openIcon.style.display = "none";
-  closeIcon.style.display = "block";
-  document.body.classList.add("no-scroll");
-});
-
-function closeCanvas() {
-  canvasMenu.classList.remove("open");
-  overlay.classList.remove("active");
-  openIcon.style.display = "inline-block";
-  closeIcon.style.display = "none";
-  document.body.classList.remove("no-scroll");
+/* Mobile canvas menu */
+const menuBtn = document.getElementById("menu-btn"), canvasMenu = document.getElementById("canvas-menu"), openIcon = document.getElementById("open-icon"), closeIcon = document.getElementById("close-icon"), overlay = document.getElementById("canvas-overlay");
+if (menuBtn && canvasMenu && overlay) {
+  const canvasLinks = canvasMenu.querySelectorAll("a");
+  menuBtn.addEventListener("click", () => { canvasMenu.classList.add("open"); overlay.classList.add("active"); if(openIcon) openIcon.style.display="none"; if(closeIcon) closeIcon.style.display="block"; document.body.classList.add("no-scroll"); });
+  function closeCanvas(){canvasMenu.classList.remove("open");overlay.classList.remove("active");if(openIcon)openIcon.style.display="inline-block";if(closeIcon)closeIcon.style.display="none";document.body.classList.remove("no-scroll");}
+  closeIcon?.addEventListener("click", closeCanvas); overlay.addEventListener("click", closeCanvas); canvasLinks.forEach(link=>link.addEventListener("click",closeCanvas));
 }
+setTimeout(() => document.querySelector(".main-container")?.classList.add("hide"), 2500);
 
-closeIcon.addEventListener("click", closeCanvas);
-overlay.addEventListener("click", closeCanvas);
-
-canvasLinks.forEach((link) => {
-  link.addEventListener("click", closeCanvas);
-});
-
-setTimeout(() => {
-  document.querySelector(".main-container").classList.add("hide");
-}, 2500);
+/* Supabase content binding. The existing HTML remains the fallback if the database is unavailable. */
+async function loadPortfolioContent() {
+  if (!window.supabaseClient) return;
+  const { data, error } = await supabaseClient.from("portfolio_content").select("content").order("id").limit(1).maybeSingle();
+  if (error || !data?.content) return;
+  const c = data.content;
+  const setText = (selector, value) => { const node = document.querySelector(selector); if (node && value != null) node.textContent = value; };
+  setText(".content .text h2:first-child", c.heroTitle);
+  setText(".content .text > p", c.heroSubtitle);
+  setText(".navbar .logo h3", c.brand || "Nagy");
+  const typeNode = document.querySelector(".type-once .text"); if (typeNode && c.brand) typeNode.dataset.typingText = c.brand;
+  if (c.email) document.querySelectorAll('a[href^="mailto:"]').forEach(a=>{a.href=`mailto:${c.email}`});
+  if (c.facebook) document.querySelectorAll('a[href*="facebook.com"]').forEach(a=>a.href=c.facebook);
+  if (c.linkedin) document.querySelectorAll('a[href*="linkedin.com"]').forEach(a=>a.href=c.linkedin);
+  const stats = c.stats || {};
+  ["years","words","clients"].forEach((key,i)=>{const node=document.querySelectorAll(".stats .stat b")[i];if(node && stats[key])node.textContent=stats[key]});
+  if (Array.isArray(c.quickFacts)) document.querySelectorAll(".info-card .ab li").forEach((node,i)=>{if(c.quickFacts[i])node.textContent=c.quickFacts[i]});
+  if (Array.isArray(c.about)) document.querySelectorAll(".about-col-2 .aft").forEach((node,i)=>{if(c.about[i])node.textContent=c.about[i]});
+  if (Array.isArray(c.skills)) document.querySelectorAll(".skills .skill p").forEach((node,i)=>{if(c.skills[i])node.textContent=c.skills[i]});
+  if (Array.isArray(c.services)) document.querySelectorAll(".services-list > div").forEach((node,i)=>{const item=c.services[i];if(!item)return;if(item.title)node.querySelector("h2").textContent=item.title;if(item.description)node.querySelector("p").textContent=item.description});
+  if (Array.isArray(c.portfolio)) document.querySelectorAll(".portfolio .item").forEach((node,i)=>{const item=c.portfolio[i];if(!item)return;if(item.title)node.querySelector("h3").textContent=item.title;if(item.url)node.querySelector("a").href=item.url;if(item.image)node.querySelector("img").src=item.image});
+}
+loadPortfolioContent();
