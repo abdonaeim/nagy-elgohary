@@ -53,3 +53,39 @@ async function loadPortfolioContent() {
   if (Array.isArray(c.portfolio)) document.querySelectorAll(".portfolio .item").forEach((node,i)=>{const item=c.portfolio[i];if(!item)return;if(item.title)node.querySelector("h3").textContent=item.title;if(item.url)node.querySelector("a").href=item.url;if(item.image)node.querySelector("img").src=item.image});
 }
 loadPortfolioContent();
+
+/* Contact submissions are stored in Supabase until email delivery is connected. */
+const contactForm = document.getElementById("contactForm");
+if (contactForm && window.supabaseClient) {
+  contactForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const status = document.getElementById("contactStatus");
+    const submitButton = contactForm.querySelector("button[type=submit]");
+    const formData = new FormData(contactForm);
+    const files = [...(document.getElementById("documents")?.files || [])];
+    const allowed = ["application/pdf", "image/jpeg", "image/png", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (files.some(file => !allowed.includes(file.type) || file.size > 10 * 1024 * 1024)) {
+      status.textContent = "Please upload PDF, JPG, PNG, or DOC files up to 10 MB each.";
+      return;
+    }
+    submitButton.disabled = true;
+    status.textContent = "Sending…";
+    const filePaths = [];
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${crypto.randomUUID()}-${safeName}`;
+      const upload = await supabaseClient.storage.from("contact-documents").upload(path, file, { upsert: false });
+      if (upload.error) { status.textContent = upload.error.message; submitButton.disabled = false; return; }
+      filePaths.push({ path, name: file.name, type: file.type, size: file.size });
+    }
+    const submission = {
+      name: formData.get("name"), email: formData.get("email"), country_code: formData.get("country_code"),
+      phone: formData.get("phone"), message: formData.get("Message"), file_paths: filePaths
+    };
+    const { error } = await supabaseClient.from("contact_submissions").insert(submission);
+    if (error) { status.textContent = error.message; submitButton.disabled = false; return; }
+    contactForm.reset();
+    status.textContent = "Your message and documents were received successfully.";
+    submitButton.disabled = false;
+  });
+}

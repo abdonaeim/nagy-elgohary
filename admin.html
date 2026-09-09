@@ -21,6 +21,7 @@
     <section id="dashboard" class="hidden">
       <div class="top"><div><h1>Portfolio Content</h1><p class="muted">Edit all public content as JSON. Keep the same field names for the live site.</p></div><div class="row"><a href="index.html" target="_blank">View site</a><button id="logout" class="secondary">Log out</button></div></div>
       <div class="card"><div class="field"><label for="contentEditor">Content JSON</label><textarea id="contentEditor" spellcheck="false"></textarea></div><div class="row"><button id="save">Save changes</button><button id="reload" class="secondary">Reload</button></div><div id="saveStatus" class="status"></div></div>
+      <div class="card" style="margin-top:24px"><div class="top"><div><h2>Contact submissions</h2><p class="muted">Messages and uploaded documents are stored here until email delivery is connected.</p></div><button id="refreshSubmissions" class="secondary">Refresh</button></div><div id="submissions" class="submissions muted">Loading…</div></div>
     </section>
   </main>
 <script>
@@ -30,13 +31,20 @@ const loginStatus = document.getElementById('loginStatus'), saveStatus = documen
 let rowId = null;
 function message(el, text, error=false){el.textContent=text;el.style.color=error?'#ff9eae':'#9be8c5'}
 async function loadContent(){const {data,error}=await supabaseClient.from(table).select('id,content').order('id').limit(1).maybeSingle();if(error)throw error;if(!data)throw new Error('No content row found');rowId=data.id;editor.value=JSON.stringify(data.content,null,2)}
-async function showSession(session){if(!session){loginCard.classList.remove('hidden');dashboard.classList.add('hidden');return}loginCard.classList.add('hidden');dashboard.classList.remove('hidden');try{await loadContent();}catch(e){message(saveStatus,e.message,true)}}
+async function loadSubmissions(){const box=document.getElementById('submissions');const {data,error}=await supabaseClient.from('contact_submissions').select('id,name,email,country_code,phone,message,file_paths,created_at').order('created_at',{ascending:false}).limit(50);if(error){box.textContent=error.message;return}if(!data?.length){box.textContent='No submissions yet.';return}box.innerHTML=data.map(item=>{const files=(item.file_paths||[]).map(file=>`<button class="secondary file-btn" data-path="${encodeURIComponent(file.path)}">${file.name}</button>`).join(' ');return `<article class="submission"><h3>${escapeHtml(item.name)} <small>${new Date(item.created_at).toLocaleString()}</small></h3><p><a href="mailto:${encodeURIComponent(item.email)}">${escapeHtml(item.email)}</a> · ${escapeHtml(item.country_code||'')} ${escapeHtml(item.phone||'')}</p><p>${escapeHtml(item.message||'')}</p><div>${files||'<span class="muted">No attachments</span>'}</div></article>`}).join('');box.querySelectorAll('.file-btn').forEach(button=>button.addEventListener('click',async()=>{const {data,error}=await supabaseClient.storage.from('contact-documents').createSignedUrl(decodeURIComponent(button.dataset.path),3600);if(error)message(saveStatus,error.message,true);else window.open(data.signedUrl,'_blank')}))}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character]))}
+async function showSession(session){if(!session){loginCard.classList.remove('hidden');dashboard.classList.add('hidden');return}loginCard.classList.add('hidden');dashboard.classList.remove('hidden');try{await loadContent();await loadSubmissions();}catch(e){message(saveStatus,e.message,true)}}
 supabaseClient.auth.onAuthStateChange((_event,session)=>showSession(session));
 supabaseClient.auth.getSession().then(({data})=>showSession(data.session));
 document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();message(loginStatus,'Signing in…');const {error}=await supabaseClient.auth.signInWithPassword({email:email.value,password:password.value});if(error)message(loginStatus,error.message,true)});
 document.getElementById('logout').addEventListener('click',()=>supabaseClient.auth.signOut());
 document.getElementById('reload').addEventListener('click',async()=>{try{await loadContent();message(saveStatus,'Content reloaded.')}catch(e){message(saveStatus,e.message,true)}});
+document.getElementById('refreshSubmissions').addEventListener('click',loadSubmissions);
 document.getElementById('save').addEventListener('click',async()=>{let content;try{content=JSON.parse(editor.value)}catch(e){message(saveStatus,'Invalid JSON: '+e.message,true);return}message(saveStatus,'Saving…');const {error}=await supabaseClient.from(table).update({content,updated_at:new Date().toISOString()}).eq('id',rowId);if(error)message(saveStatus,error.message,true);else message(saveStatus,'Saved successfully.')});
 </script>
 </body>
 </html>
+
+<style>
+.submission{border-top:1px solid #38516a;padding:16px 0}.submission:first-child{border-top:0}.submission h3{margin:0 0 6px;color:#9be8c5}.submission h3 small{font-size:12px;color:#aabfc4;font-weight:400}.submission p{margin:7px 0;white-space:pre-wrap}.file-btn{font-size:13px;padding:8px 10px;margin:4px 4px 0 0}
+</style>

@@ -1500,3 +1500,12 @@ body.no-scroll {
     display: none;
   }
 }
+
+/* Contact form enhancements */
+.phone-fields { display: grid; grid-template-columns: minmax(150px, .8fr) 1.2fr; gap: 10px; }
+.phone-fields select, .file-label { font: inherit; }
+.contact-right select { padding: 14px; border: 0; outline: 0; border-radius: 6px; background: #fff; color: #333; }
+.file-label { display: block; color: #c9d4e5; font-size: 14px; margin: 10px 0 6px; }
+.contact-right input[type=file] { padding: 10px; color: #dce7ee; }
+.contact-status { min-height: 24px; color: #8fe4c0; font-size: 14px; }
+@media (max-width: 600px) { .phone-fields { grid-template-columns: 1fr; } }

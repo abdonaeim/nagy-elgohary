@@ -809,12 +809,7 @@
             >
           </div>
           <div class="contact-right">
-            <form action="https://api.web3forms.com/submit" method="POST">
-              <input
-                type="hidden"
-                name="access_key"
-                value="bdab3484-63e5-4e61-b422-0ce0f03aafa9"
-              />
+            <form id="contactForm" enctype="multipart/form-data">
               <input type="text" name="name" placeholder="Your Name" required />
               <input
                 type="email"
@@ -822,11 +817,33 @@
                 placeholder="Your Email"
                 required
               />
+              <div class="phone-fields">
+                <select name="country_code" aria-label="Country code" required>
+                  <option value="+20">Egypt (+20)</option>
+                  <option value="+966">Saudi Arabia (+966)</option>
+                  <option value="+971">United Arab Emirates (+971)</option>
+                  <option value="+974">Qatar (+974)</option>
+                  <option value="+962">Jordan (+962)</option>
+                  <option value="+968">Oman (+968)</option>
+                  <option value="+973">Bahrain (+973)</option>
+                  <option value="+965">Kuwait (+965)</option>
+                  <option value="+1">United States / Canada (+1)</option>
+                  <option value="+44">United Kingdom (+44)</option>
+                  <option value="+49">Germany (+49)</option>
+                  <option value="+33">France (+33)</option>
+                  <option value="+90">Turkey (+90)</option>
+                  <option value="+91">India (+91)</option>
+                </select>
+                <input type="tel" name="phone" placeholder="Phone number" required />
+              </div>
               <textarea
                 name="Message"
                 rows="6"
                 placeholder="Your Message"
               ></textarea>
+              <label class="file-label" for="documents">Attach documents (PDF, JPG, PNG, DOC — max 10 MB each)</label>
+              <input id="documents" type="file" name="documents" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple />
+              <p id="contactStatus" class="contact-status" role="status"></p>
               <button type="submit" class="btn btn2">Submit</button>
             </form>
           </div>
