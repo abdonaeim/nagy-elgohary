@@ -818,23 +818,30 @@
                 required
               />
               <div class="phone-fields">
-                <select name="country_code" aria-label="Country code" required>
-                  <option value="+20">🇪🇬 Egypt (+20)</option>
-                  <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
-                  <option value="+971">🇦🇪 United Arab Emirates (+971)</option>
-                  <option value="+974">🇶🇦 Qatar (+974)</option>
-                  <option value="+962">🇯🇴 Jordan (+962)</option>
-                  <option value="+968">🇴🇲 Oman (+968)</option>
-                  <option value="+973">🇧🇭 Bahrain (+973)</option>
-                  <option value="+965">🇰🇼 Kuwait (+965)</option>
-                  <option value="+1">🇺🇸 United States / Canada (+1)</option>
-                  <option value="+44">🇬🇧 United Kingdom (+44)</option>
-                  <option value="+49">🇩🇪 Germany (+49)</option>
-                  <option value="+33">🇫🇷 France (+33)</option>
-                  <option value="+90">🇹🇷 Turkey (+90)</option>
-                  <option value="+91">🇮🇳 India (+91)</option>
-                </select>
-                <input type="tel" name="phone" placeholder="Phone number" required />
+                <div class="phone-input-wrap">
+                  <div class="country-picker">
+                    <button type="button" id="countryPickerButton" aria-expanded="false"><span id="selectedFlag">🇪🇬</span><span id="selectedCountryCode">+20</span><span class="country-chevron">⌄</span></button>
+                    <div id="countryMenu" class="country-menu" role="listbox">
+                      <input id="countrySearch" type="search" placeholder="Search countries" aria-label="Search countries" />
+                      <button type="button" data-code="+20" data-flag="🇪🇬" data-country="Egypt">🇪🇬 Egypt <b>+20</b></button>
+                      <button type="button" data-code="+966" data-flag="🇸🇦" data-country="Saudi Arabia">🇸🇦 Saudi Arabia <b>+966</b></button>
+                      <button type="button" data-code="+971" data-flag="🇦🇪" data-country="United Arab Emirates">🇦🇪 United Arab Emirates <b>+971</b></button>
+                      <button type="button" data-code="+974" data-flag="🇶🇦" data-country="Qatar">🇶🇦 Qatar <b>+974</b></button>
+                      <button type="button" data-code="+962" data-flag="🇯🇴" data-country="Jordan">🇯🇴 Jordan <b>+962</b></button>
+                      <button type="button" data-code="+968" data-flag="🇴🇲" data-country="Oman">🇴🇲 Oman <b>+968</b></button>
+                      <button type="button" data-code="+973" data-flag="🇧🇭" data-country="Bahrain">🇧🇭 Bahrain <b>+973</b></button>
+                      <button type="button" data-code="+965" data-flag="🇰🇼" data-country="Kuwait">🇰🇼 Kuwait <b>+965</b></button>
+                      <button type="button" data-code="+1" data-flag="🇺🇸" data-country="United States / Canada">🇺🇸 United States / Canada <b>+1</b></button>
+                      <button type="button" data-code="+44" data-flag="🇬🇧" data-country="United Kingdom">🇬🇧 United Kingdom <b>+44</b></button>
+                      <button type="button" data-code="+49" data-flag="🇩🇪" data-country="Germany">🇩🇪 Germany <b>+49</b></button>
+                      <button type="button" data-code="+33" data-flag="🇫🇷" data-country="France">🇫🇷 France <b>+33</b></button>
+                      <button type="button" data-code="+90" data-flag="🇹🇷" data-country="Turkey">🇹🇷 Turkey <b>+90</b></button>
+                      <button type="button" data-code="+91" data-flag="🇮🇳" data-country="India">🇮🇳 India <b>+91</b></button>
+                    </div>
+                  </div>
+                  <input type="hidden" name="country_code" id="countryCode" value="+20" />
+                  <input type="tel" name="phone" placeholder="Phone number" required />
+                </div>
               </div>
               <textarea
                 name="Message"

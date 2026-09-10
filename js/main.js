@@ -18,6 +18,36 @@ function typeLoop() {
 }
 typeLoop();
 
+/* Combined country selector inside the phone input. */
+const countryPickerButton = document.getElementById("countryPickerButton");
+const countryMenu = document.getElementById("countryMenu");
+const countryCode = document.getElementById("countryCode");
+if (countryPickerButton && countryMenu && countryCode) {
+  countryPickerButton.addEventListener("click", () => {
+    const open = countryMenu.classList.toggle("open");
+    countryPickerButton.setAttribute("aria-expanded", String(open));
+  });
+  countryMenu.querySelectorAll("button[data-code]").forEach((option) => option.addEventListener("click", () => {
+    countryCode.value = option.dataset.code;
+    document.getElementById("selectedFlag").textContent = option.dataset.flag;
+    document.getElementById("selectedCountryCode").textContent = option.dataset.code;
+    countryMenu.classList.remove("open");
+    countryPickerButton.setAttribute("aria-expanded", "false");
+  }));
+  document.getElementById("countrySearch")?.addEventListener("input", (event) => {
+    const query = event.target.value.toLowerCase();
+    countryMenu.querySelectorAll("button[data-country]").forEach((option) => {
+      option.hidden = !option.dataset.country.toLowerCase().includes(query) && !option.dataset.code.includes(query);
+    });
+  });
+  document.addEventListener("click", (event) => {
+    if (!countryMenu.contains(event.target) && !countryPickerButton.contains(event.target)) {
+      countryMenu.classList.remove("open");
+      countryPickerButton.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
 document.querySelectorAll(".item").forEach((item) => { const link = item.querySelector("a"); if (link) item.addEventListener("click", () => { window.location = link.href; }); });
 
 /* Mobile canvas menu */
